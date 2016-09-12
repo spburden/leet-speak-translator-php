@@ -1,28 +1,23 @@
 <?php
     require_once __DIR__."/../vendor/autoload.php";
-    require_once __DIR__."/../src/Album.php";
-    session_start();
-    if (empty($_SESSION['list_of_albums'])) {
-        $_SESSION['list_of_albums'] = array();
-    }
+    require_once __DIR__."/../src/LeetSpeak.php";
+
     $app = new Silex\Application();
+    $app['debug'] = true;
+
     $app->register(new Silex\Provider\TwigServiceProvider(), array(
-    'twig.path' => __DIR__.'/../views'
+        'twig.path' => __DIR__.'/../views'
     ));
+
     $app->get("/", function() use ($app) {
-        return $app['twig']->render('home-list.html.twig', array('user_albums' => Album::getAll()));
+        return $app['twig']->render('form.html.twig');
     });
-    $app->get("/albumform", function() use ($app) {
-        return $app['twig']->render('add-album.html.twig');
+
+    $app->get("/translation", function() use($app){
+        $my_translation = new LeetSpeak();
+        $translation_result = $my_translation->leetSpeakConvert($_GET['userInput']);
+        return $app['twig']->render('translation.html.twig', array('result' => $translation_result));
     });
-    $app->post("/addalbum", function() use ($app) {
-        $newAlbum = new Album($_POST['artist'], $_POST['title']);
-        $newAlbum->save();
-        return $app['twig']->render('home-list.html.twig', array('user_albums' => Album::getAll()));
-    });
-    $app->get("/clearlist", function() use ($app) {
-        Album::deleteAll();
-        return $app['twig']->render('home-list.html.twig');
-    });
+
     return $app;
 ?>
